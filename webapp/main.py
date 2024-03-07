@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import hashlib
 
 current_dir = dirname(abspath(__file__))
 static_path = join(current_dir, "static")
@@ -14,8 +15,26 @@ app = FastAPI()
 app.mount("/ui", StaticFiles(directory=static_path), name="ui")
 
 
+class Text(BaseModel):
+    text: str
+
+
 class Body(BaseModel):
     length: Union[int, None] = 20
+
+
+@app.post('/checksum')
+def calculate_checksum(text: Text):
+    """
+    Calculate the checksum of the provided text.
+
+    Example POST request body:
+    {
+        "text": "Hello, world!"
+    }
+    """
+    checksum = hashlib.md5(text.text.encode()).hexdigest()
+    return {'checksum': checksum}
 
 
 @app.get('/')
